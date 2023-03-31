@@ -1,3 +1,7 @@
 module.exports.home = function(req, res){
-    return res.end('<h1>Our Express Server is loaded!</h1>')
+    res.cookie('User_Id', 25);
+    console.log(req.cookies);
+    return res.render('home', {
+        title: "Home"
+    });
 }
