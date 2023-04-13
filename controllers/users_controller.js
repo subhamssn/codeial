@@ -44,6 +44,50 @@ module.exports.create = async function(req, res) {
   };
 
 
-module.exports.createSession = function(req, res){
+  module.exports.profile = async function(req, res){
+      
+    if(req.cookies.user_id){
+      const user = await User.findById(req.cookies.user_id).exec();
+      if(user){
+        return res.render('user_profile',{
+          title: "User Profile",
+          user: user
+        })
+      }
 
+      return res.redirect('/users/sign-in');
+    }
+
+    else{
+      return res.redirect('/users.sign-in');
+    }
+  }
+
+
+module.exports.createSession = async function(req, res){
+
+  //steps to authenticate
+  // find the user
+
+   const user = await User.findOne({email: req.body.email}).exec();
+    
+   //handle user found
+   if(user){
+        
+        // handle password which doesn't match
+        if(user.password != req.body.password){
+            return res.redirect('back');
+        }
+
+        //handle session creation
+
+        res.cookie('user_id', user.id);
+        return res.redirect('/users/profile');
+   }
+
+   else{
+        // handle user not found
+        return res.redirect('back');
+
+   }
 }
