@@ -1,10 +1,21 @@
 const User = require('../models/user');
 
 
-module.exports.profile = function(req, res){
-    return res.render('profile', {
-           title: "Profile"
-    });
+module.exports.profile = async function(req, res){
+  if(req.cookies.user_id){
+     const user = await User.findById(req.cookies.user_id).exec();
+     if(user){
+       return res.render('user_profile', {
+        title: "Profile Page",
+        user: user
+       })
+     }
+     return res.redirect('users/sign-in')
+  } else{
+    return res.redirect('users/sign-in');
+  }
+
+
 }
 
 
@@ -44,50 +55,33 @@ module.exports.create = async function(req, res) {
   };
 
 
-  module.exports.profile = async function(req, res){
-      
-    if(req.cookies.user_id){
-      const user = await User.findById(req.cookies.user_id).exec();
-      if(user){
-        return res.render('user_profile',{
-          title: "User Profile",
-          user: user
-        })
-      }
 
-      return res.redirect('/users/sign-in');
-    }
-
-    else{
-      return res.redirect('/users.sign-in');
-    }
-  }
-
+  // sign in and create a session for the user
 
 module.exports.createSession = async function(req, res){
+     
+     //steps to authenticate
+     //find the user
 
-  //steps to authenticate
-  // find the user
+     const user = await User.findOne({email: req.body.email}).exec();
 
-   const user = await User.findOne({email: req.body.email}).exec();
-    
-   //handle user found
-   if(user){
-        
-        // handle password which doesn't match
+     //handle user found
+     if(user){
+      
+      // handle password which doesn't match
         if(user.password != req.body.password){
-            return res.redirect('back');
+          return res.redirect('back');
         }
 
-        //handle session creation
+      // handle session creation
+      res.cookie('user_id', user.id);
+      return res.redirect('/users/profile');
+      
+     }
 
-        res.cookie('user_id', user.id);
-        return res.redirect('/users/profile');
-   }
-
-   else{
-        // handle user not found
-        return res.redirect('back');
-
-   }
+     else{
+      //handle user not found
+      return res.redirect('back');
+     }
 }
+
